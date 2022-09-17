@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    1В: {{ user.get_full_name }}
+{% endblock %}
+
+{% block h1 %}
+    {{ user.get_full_name }}
+{% endblock %}
+
+{% block content %}
+
+<div class="card text-center">
+  <div class="card-header">
+    {{ message }}
+  </div>
+  <div class="card-body">
+    <h1 class="card-title"><i class="bi {{ icon }}"></i></h1>
+    <h3 class="card-title">{{ lesson.lesson.title }}</h3>
+    <p class="card-text">
+      {% if not permanent %}
+        {{ lesson.next_lesson_day|date:"l d.m.Y" }}
+        {% if line.is_next_lesson_tomorrow %}
+        (Завтра)
+        {% endif %}
+        {% endif %}
+      </p>
+  </div>
+  <div class="card-footer text-muted">
+    <a href="{% url 'booking:cabinet' %}" class="btn btn-primary">На главную</a>
+  </div>
+</div>
+
+{% endblock %}
