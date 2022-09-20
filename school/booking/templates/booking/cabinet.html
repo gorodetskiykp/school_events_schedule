@@ -17,7 +17,9 @@
         <i class="bi {{ line.lesson.bootstrap_icon }}"></i>
         {{ line.lesson.title }}
     </h3>
-    <p class="card-text">{{ line.lesson.description }}</p>
+    <p class="card-text">
+        Дни занятий: {{ line.week_schedule }}<br />
+        {{ line.lesson.description }}</p>
       <ul class="list-group list-group-flush">
           <li class="list-group-item">
           Следующее занятие:
@@ -45,20 +47,7 @@
       {% else %}
               <a href="{% url 'booking:booking_next_lesson' line.id %}" class="btn btn-outline-success {% if line.is_deadline %}disabled{% endif %}"><i class="bi bi-check-circle"></i> Пойдём на это занятие</a>
       {% endif %}
-              <a href="{% url 'booking:multi_booking' %}" class="btn btn-outline-dark"><i class="bi bi-card-checklist"></i> Посмотреть запись на другие дни</a>
-          </li>
-          <li class="list-group-item">
-        <div class="mt-3">
-      {% if line.id in permanent_bookings %}
-            <div>Включена автоматическая запись на занятия</div>
-              <a href="{% url 'booking:cancel_permanent_booking' line.id %}" class="btn btn-outline-danger"><i class="bi bi-x-circle"></i> Не будем ходить на эти занятия</a>
-            <i class="bi bi-arrow-left"></i> убрать автоматическую запись на занятия
-      {% else %}
-            <div>Можно включить автоматическую запись на занятия</div>
-              <a href="{% url 'booking:permanent_booking' line.id %}" class="btn btn-outline-success"><i class="bi bi-check-circle"></i> Будем постоянно ходить на эти занятия</a>
-            <i class="bi bi-arrow-left"></i> автоматически записывать на занятия
-      {% endif %}
-        </div>
+              <a href="{% url 'booking:multi_booking' line.id %}" class="btn btn-outline-dark"><i class="bi bi-card-checklist"></i> Посмотреть запись на другие дни</a>
           </li>
       </ul>
   </div>

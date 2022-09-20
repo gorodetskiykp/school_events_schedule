@@ -9,13 +9,42 @@
   </head>
   <body>
   <div class="container-fluid">
-    <div class="row pb-5 pt-5 px-2">
+    <div class="row pb-3 pt-5 px-2">
     <h1>{% block h1 %}{% endblock %}</h1>
-    </div>
+
+          <div class="d-grid gap-2 d-md-block">
+          <a href="{% url 'booking:cabinet' %}" class="btn btn-outline-secondary {% if request.resolver_match.view_name  == 'booking:cabinet' %}active{% endif %}"><i class="bi bi-award"></i> Занятия</a>
+          <a href="{% url 'booking:events' %}" class="btn btn-outline-secondary {% if request.resolver_match.view_name  == 'booking:events' %}active{% endif %}"><i class="bi bi-calendar"></i> Мероприятия</a>
+          </div>
+          </div>
     <div class="row">
       {% block content %}{% endblock %}
     </div>
   </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-u1OknCvxWvY5kfmNBILK2hRnQC3Pr17a+RTT6rIHI7NnikvbZlHgTPOOmMi466C8" crossorigin="anonymous"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+  <script>
+  $(document).ready(function(){
+      $('#select_all').on('click',function(){
+          if(this.checked){
+              $('.checkbox').each(function(){
+                  this.checked = true;
+              });
+          }else{
+               $('.checkbox').each(function(){
+                  this.checked = false;
+              });
+          }
+      });
+
+      $('.checkbox').on('click',function(){
+          if($('.checkbox:checked').length == $('.checkbox').length){
+              $('#select_all').prop('checked',true);
+          }else{
+              $('#select_all').prop('checked',false);
+          }
+      });
+  });
+  </script>
   </body>
 </html>

@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    1В: {{ user.get_full_name }}
+{% endblock %}
+
+{% block h1 %}
+    {{ user.get_full_name }}
+{% endblock %}
+
+{% block content %}
+{% for event in events %}
+<div class="card mb-3"">
+  <div class="card-body">
+    <h3 class="card-title">
+        <i class="bi {{ event.bootstrap_icon }}"></i>
+        {{ event.title }}
+    </h3>
+    <p class="card-text">
+        {{ event.description }}</p>
+      <ul class="list-group list-group-flush">
+          <li class="list-group-item">
+          Начало: {{ event.datetime_begin|date:"l d.m.Y H:i" }}
+
+
+      {% if event.id in booked %}
+              <span class="badge bg-success rounded-pill"><i class="bi bi-check-circle"></i> ВЫ ЗАПИСАНЫ</span>
+      {% else %}
+              <span class="badge bg-secondary rounded-pill"><i class="bi bi-x-circle"></i> ВЫ НЕ ЗАПИСАНЫ</span>
+      {% endif %}
+              <br />Завершение: {{ event.datetime_end|date:"l d.m.Y H:i" }}
+              </p>
+      <p style="background-color: {% if line.is_deadline %}LavenderBlush{% else %}Beige{% endif %};">
+          Изменить запись можно {% if event.is_deadline %}было {% endif %}до:
+          {{ event.deadline_booking|date:"H:i d.m.Y" }}
+      </p>
+
+      {% if event.id in booked %}
+              <a href="{% url 'booking:cancel_booking_next_lesson' event.id %}" class="btn btn-outline-danger {% if event.is_deadline %}disabled{% endif %}"><i class="bi bi-x-circle"></i> Не пойдём на это мероприятие</a>
+      {% else %}
+              <a href="{% url 'booking:booking_next_lesson' event.id %}" class="btn btn-outline-success {% if event.is_deadline %}disabled{% endif %}"><i class="bi bi-check-circle"></i> Пойдём на это мероприятие</a>
+      {% endif %}
+          </li>
+      </ul>
+  </div>
+</div>
+{% endfor %}
+{% endblock %}

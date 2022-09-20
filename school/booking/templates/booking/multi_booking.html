@@ -9,36 +9,46 @@
 {% endblock %}
 
 {% block content %}
+<div class="card mb-3">
 
-<div class="form-check">
-  <input class="form-check-input" type="checkbox" value="" id="selectall" name="selectall" autocomplete="off" onclick="eventCheckBox()">
-  <label class="form-check-label" for="selectall">
-    Select all
+  <div class="card-body">
+    <h3 class="card-title">
+        <i class="bi {{ lesson.lesson.bootstrap_icon }}"></i>
+        {{ lesson.lesson.title }}
+
+    </h3>
+    <p class="card-text">
+        Дни занятий: {{ lesson.week_schedule }}<br />
+        {{ lesson.lesson.description }}</p>
+<div class="form-check mb-3">
+  <input class="form-check-input" type="checkbox" value="" id="select_all" name="select_all" autocomplete="off" onclick="eventCheckBox()">
+  <label class="form-check-label" for="select_all">
+      <b>Групповое выделение</b>
   </label>
 </div>
 
+{% if lesson.lesson_days %}
+      <form method="post" action="{% url 'booking:multi_booking' lesson.id %}">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-primary mb-3">Сохранить</button>
+          <a href="{% url 'booking:cabinet' %}" class="btn btn-outline-primary mb-3">На главную</a>
+{% for month, lessons in lesson.lesson_days.items %}
+          <div class="mb-3">
+          <h5>{{ month|date:"F Y" }}</h5>
+          {% for lesson_date in lessons %}
 <div class="form-check">
-  <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
-  <label class="form-check-label" for="flexCheckDefault">
-    Default checkbox
-  </label>
-</div>
-<div class="form-check">
-  <input class="form-check-input" type="checkbox" value="" id="flexCheckChecked" checked>
-  <label class="form-check-label" for="flexCheckChecked">
-    Checked checkbox
+  <input class="form-check-input checkbox" type="checkbox" value='{{ lesson_date|date:"Y-m-d" }}' name='lesson_date' id='{{ lesson_date|date:"Y-m-d" }}' {% if lesson_date in booked %}checked{% endif %}>
+  <label class="form-check-label" for='{{ lesson_date|date:"Y-m-d" }}'>
+      {{lesson_date|date:"d.m.Y, l"}}
   </label>
 </div>
 
-<script>
-function eventCheckBox() {
-  let checkboxs = document.getElementsByTagName("input");
-  for(let i = 0; i < checkboxs.length ; i++) {
-    if checkboxs[i].checked {
-        checkboxs[i].checked = false;
-    }
-  }
-}
-</script>
+{% endfor %}
+              </div>
+{% endfor %}
+      </form>
+{% endif %}
 
+  </div>
+</div>
 {% endblock %}

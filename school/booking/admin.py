@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Lesson, Schedule, PermanentBooking, Booking
+from .models import Lesson, Schedule, Booking, Event, EventBooking
 
 
 class ScheduleAdmin(admin.ModelAdmin):
@@ -7,7 +7,7 @@ class ScheduleAdmin(admin.ModelAdmin):
 
 
 class BookingAdmin(admin.ModelAdmin):
-    list_display = ('student_name', 'lesson', 'date', 'status')
+    list_display = ('student_name', 'lesson', 'date')
     list_display_links = ('student_name', 'lesson')
     empty_value_display = '-empty-'
 
@@ -15,7 +15,17 @@ class BookingAdmin(admin.ModelAdmin):
         return obj.student.get_full_name()
 
 
+class EventBookingAdmin(admin.ModelAdmin):
+    list_display = ('student_name', 'event')
+    list_display_links = ('student_name', 'event')
+    empty_value_display = '-empty-'
+
+    def student_name(self, obj):
+        return obj.student.get_full_name()
+
+
 admin.site.register(Lesson)
+admin.site.register(Event)
 admin.site.register(Booking, BookingAdmin)
+admin.site.register(EventBooking, EventBookingAdmin)
 admin.site.register(Schedule, ScheduleAdmin)
-admin.site.register(PermanentBooking)

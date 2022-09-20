@@ -4,6 +4,7 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 
 User = get_user_model()
 
@@ -20,7 +21,12 @@ def validate_schedule_week_days(value):
 class Lesson(models.Model):
     title = models.CharField('Название занятия', max_length=100, unique=True)
     description = models.TextField('Описание', null=True, blank=True)
-    bootstrap_icon = models.CharField('Иконка', max_length=50, default='bi-emoji-smile')
+    bootstrap_icon = models.CharField(
+        'Иконка',
+        max_length=50,
+        default='bi-emoji-smile',
+        help_text='https://icons.getbootstrap.com/icons/'
+    )
 
     class Meta:
         ordering = ('title',)
@@ -29,6 +35,30 @@ class Lesson(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class Event(Lesson):
+    datetime_begin = models.DateTimeField('Время начала мероприятия')
+    datetime_end = models.DateTimeField('Время завершения мероприятия')
+    deadline_booking = models.DateTimeField('Время завершения бронирования')
+    price = models.PositiveIntegerField('Стоимость')
+
+    class Meta:
+        ordering = ('-datetime_begin',)
+        verbose_name = 'Мероприятие'
+        verbose_name_plural = 'Мероприятия'
+        constraints = [
+            models.CheckConstraint(check=models.Q(datetime_begin__lt=models.F('datetime_end')), name='check_events_dates'),
+            models.CheckConstraint(check=models.Q(deadline_booking__lt=models.F('datetime_begin')),
+                                   name='check_events_deadlines'),
+        ]
+
+    def __str__(self):
+        return self.title
+
+    @property
+    def is_deadline(self):
+        return timezone.now() >= self.deadline_booking
 
 
 class Schedule(models.Model):
@@ -81,12 +111,42 @@ class Schedule(models.Model):
         day = self.next_lesson_day - timedelta(days=1)
         return datetime.combine(day, time(hour=settings.DEADLINE_TIME))
 
+    @property
+    def week_schedule(self):
+        week_days = [
+            'Понедельник',
+            'Вторник',
+            'Среда',
+            'Четверг',
+            'Пятница',
+            'Суббота',
+            'Воскресенье',
+        ]
+        return ', '.join([item[1].lower() for item in zip(self.week_days, week_days) if int(item[0])])
+
+    @property
+    def lesson_days(self):
+        lessons = {}
+        lesson_day = self.next_lesson_day
+        if (self.next_lesson_day - date.today()).days == 1:
+            if datetime.now().hour >= settings.DEADLINE_TIME:
+                lesson_day += timedelta(days=1)
+        week_schedule = [num for num, day in enumerate(self.week_days) if int(day)]
+        while lesson_day < self.date_end:
+            if lesson_day.weekday() in week_schedule:
+                key = lesson_day.replace(year=lesson_day.year, day=1)
+                if lessons.get(key):
+                    lessons[key].append(lesson_day)
+                else:
+                    lessons[key] = [lesson_day]
+            lesson_day += timedelta(days=1)
+        return lessons
+
 
 class Booking(models.Model):
     student = models.ForeignKey(User, verbose_name='Ученик', on_delete=models.CASCADE, related_name='bookings')
     lesson = models.ForeignKey(Schedule, verbose_name='Занятие', on_delete=models.CASCADE, related_name='bookings')
     date = models.DateField('День проведения занятия')
-    status = models.BooleanField('Решение идти на занятие', default=True)
 
     class Meta:
         ordering = ('-date', 'lesson', 'student')
@@ -100,17 +160,17 @@ class Booking(models.Model):
         return '{0} {1} {2}'.format(self.date, self.lesson, self.student)
 
 
-class PermanentBooking(models.Model):
-    student = models.ForeignKey(User, verbose_name='Ученик', on_delete=models.CASCADE, related_name='permanent_bookings')
-    lesson = models.ForeignKey(Schedule, verbose_name='Занятие', on_delete=models.CASCADE, related_name='permanent_bookings')
+class EventBooking(models.Model):
+    student = models.ForeignKey(User, verbose_name='Ученик', on_delete=models.CASCADE, related_name='event_bookings')
+    event = models.ForeignKey(Event, verbose_name='Мероприятие', on_delete=models.CASCADE, related_name='event_bookings')
 
     class Meta:
-        ordering = ('lesson', 'student')
-        verbose_name = 'Постоянная запись на занятие'
-        verbose_name_plural = 'Постоянные записи на занятия'
+        ordering = ('event', 'student')
+        verbose_name = 'Запись на мероприятие'
+        verbose_name_plural = 'Записи на мероприятия'
         constraints = [
-            models.UniqueConstraint(fields=('student', 'lesson'), name='unique_student_lesson'),
+            models.UniqueConstraint(fields=('student', 'event'), name='unique_student_event'),
         ]
 
     def __str__(self):
-        return '{0} {1}'.format(self.lesson, self.student)
+        return '{0} {1}'.format(self.event, self.student)
